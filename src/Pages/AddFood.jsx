@@ -30,7 +30,7 @@ const AddFood = () => {
       donorPhoto: user?.photoURL || "",
       status: "available",
       expireDate: new Date(formData.expireDate),
-      deletable: false,
+      deletable: true,
     };
 
     try {
