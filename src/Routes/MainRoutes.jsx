@@ -17,7 +17,7 @@ const MainRoutes = () => {
       <Navbar />
       <Routes>
         <Route path="/" element={<Home />} />
-        <Route path="/available-foods" element={<AvailableFoods />} />
+        <Route path="/foods" element={<AvailableFoods />} />
         <Route
           path="/food/:id"
           element={
