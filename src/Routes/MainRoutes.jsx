@@ -8,6 +8,8 @@ import MyRequest from "../Pages/MyRequest";
 import Login from "../Pages/Login";
 import Register from "../Pages/Register";
 import ManageFoods from "../Pages/ManageFoods";
+import Navbar from "../Components/Navbar";
+import { Route, Routes } from "react-router";
 
 const MainRoutes = () => {
   return (

@@ -11,12 +11,13 @@ import {
   updateProfile,
 } from "firebase/auth";
 import { useEffect, useState } from "react";
-import app from "../firebase/firebase.config";
+
 import AuthContext from "./AuthContext";
+import app from "./../Firebase/Firebase.config";
 
 const AuthProvider = ({ children }) => {
   const auth = getAuth(app);
-  const [user, setUser] = useState({});
+  const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
 
   const createUser = (email, password) => {
@@ -29,8 +30,24 @@ const AuthProvider = ({ children }) => {
 
   const googleProvider = new GoogleAuthProvider();
 
-  const googleSignIn = () => {
-    return signInWithPopup(auth, googleProvider);
+  const googleSignIn = async () => {
+    try {
+      const result = await signInWithPopup(auth, googleProvider);
+      const loggedInUser = result.user;
+
+      // Update profile explicitly in case photoURL or displayName are missing/need refresh
+      await updateProfile(loggedInUser, {
+        displayName: loggedInUser.displayName,
+        photoURL: loggedInUser.photoURL,
+      });
+
+      setUser(loggedInUser);
+
+      return loggedInUser;
+    } catch (error) {
+      console.error("Google Sign-In Error:", error);
+      throw error;
+    }
   };
 
   const updateUser = (userInfo) => {
@@ -47,17 +64,19 @@ const AuthProvider = ({ children }) => {
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
-      console.log("🚀 ~ unsubscribe ~ currentUser:", currentUser);
       setUser(currentUser);
 
-      axios.get("http://localhost:5000", {
-        headers: {
-          Authorization: `Bearer ${currentUser.accessToken}`,
-        },
-      });
+      if (currentUser) {
+        axios.get("http://localhost:5000", {
+          headers: {
+            Authorization: `Bearer ${currentUser.accessToken}`,
+          },
+        });
+      }
 
       setLoading(false);
     });
+
     return () => {
       unsubscribe();
     };
