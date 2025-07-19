@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import React, { useEffect, useState } from "react";
+import { AnimatePresence, useAnimate } from "framer-motion";
 
 const slides = [
   {
@@ -30,48 +30,47 @@ const slides = [
 
 const BannerSlider = () => {
   const [current, setCurrent] = useState(0);
+  const [scope, animate] = useAnimate();
 
-  // Auto slide every 5 seconds
   useEffect(() => {
-    const timer = setTimeout(() => {
+    const animateSlide = async () => {
+      await animate(scope.current, { opacity: 0, x: -50 }, { duration: 0.3 });
       setCurrent((prev) => (prev === slides.length - 1 ? 0 : prev + 1));
+      await animate(scope.current, { opacity: 1, x: 0 }, { duration: 0.6 });
+    };
+
+    const timer = setTimeout(() => {
+      animateSlide();
     }, 5000);
+
     return () => clearTimeout(timer);
-  }, [current]);
+  }, [current, animate, scope]);
+
+  const slide = slides[current];
 
   return (
     <div className="relative h-[70vh] w-full overflow-hidden rounded-lg shadow-lg">
-      <AnimatePresence mode="wait">
-        {slides.map(
-          (slide, index) =>
-            index === current && (
-              <motion.div
-                key={slide.id}
-                initial={{ opacity: 0, x: 50 }}
-                animate={{ opacity: 1, x: 0 }}
-                exit={{ opacity: 0, x: -50 }}
-                transition={{ duration: 1 }}
-                className="absolute inset-0 bg-cover bg-center flex flex-col justify-center items-center text-white px-6"
-                style={{ backgroundImage: `url(${slide.image})` }}
-              >
-                <div className="absolute inset-0 bg-black bg-opacity-50"></div>
-                <div className="relative z-10 max-w-3xl text-center">
-                  <h1 className="text-5xl font-extrabold mb-4 drop-shadow-lg">
-                    {slide.title}
-                  </h1>
-                  <p className="mb-8 text-lg drop-shadow-md">
-                    {slide.subtitle}
-                  </p>
-                  <a
-                    href={slide.ctaLink}
-                    className="inline-block bg-green-500 hover:bg-green-600 text-white font-bold py-3 px-8 rounded-lg shadow-lg transition"
-                  >
-                    {slide.ctaText}
-                  </a>
-                </div>
-              </motion.div>
-            )
-        )}
+      <AnimatePresence>
+        <div
+          ref={scope}
+          key={slide.id}
+          className="absolute inset-0 bg-cover bg-center flex items-center justify-center text-white px-6"
+          style={{ backgroundImage: `url(${slide.image})` }}
+        >
+          <div className="absolute inset-0 bg-black bg-opacity-50"></div>
+          <div className="relative z-10 max-w-3xl text-center">
+            <h1 className="text-5xl font-extrabold mb-4 drop-shadow-lg">
+              {slide.title}
+            </h1>
+            <p className="mb-8 text-lg drop-shadow-md">{slide.subtitle}</p>
+            <a
+              href={slide.ctaLink}
+              className="inline-block bg-green-500 hover:bg-green-600 text-white font-bold py-3 px-8 rounded-lg shadow-lg transition"
+            >
+              {slide.ctaText}
+            </a>
+          </div>
+        </div>
       </AnimatePresence>
 
       {/* Navigation Dots */}
@@ -83,7 +82,6 @@ const BannerSlider = () => {
               idx === current ? "bg-green-500" : "bg-white bg-opacity-50"
             }`}
             onClick={() => setCurrent(idx)}
-            aria-label={`Go to slide ${idx + 1}`}
           />
         ))}
       </div>
