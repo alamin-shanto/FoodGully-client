@@ -1,4 +1,3 @@
-import axios from "axios";
 import {
   createUserWithEmailAndPassword,
   deleteUser,
@@ -13,85 +12,99 @@ import {
 import { useEffect, useState } from "react";
 
 import AuthContext from "./AuthContext";
-import app from "./../Firebase/Firebase.config";
+import app from "../Firebase/Firebase.config"; 
+
+const auth = getAuth(app); 
 
 const AuthProvider = ({ children }) => {
-  const auth = getAuth(app);
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
 
+  // Create user with email and password
   const createUser = (email, password) => {
+    setLoading(true);
     return createUserWithEmailAndPassword(auth, email, password);
   };
 
+  // Login with email and password
   const signIn = (email, password) => {
+    setLoading(true);
     return signInWithEmailAndPassword(auth, email, password);
   };
 
-  const googleProvider = new GoogleAuthProvider();
-
+  // Login with Google
   const googleSignIn = async () => {
+    setLoading(true);
+    const provider = new GoogleAuthProvider();
     try {
-      const result = await signInWithPopup(auth, googleProvider);
+      const result = await signInWithPopup(auth, provider);
       const loggedInUser = result.user;
 
-      // Update profile explicitly in case photoURL or displayName are missing/need refresh
-      await updateProfile(loggedInUser, {
-        displayName: loggedInUser.displayName,
-        photoURL: loggedInUser.photoURL,
-      });
+      // Optionally update profile if missing
+      if (!loggedInUser.displayName || !loggedInUser.photoURL) {
+        await updateProfile(loggedInUser, {
+          displayName: loggedInUser.displayName || "User",
+          photoURL: loggedInUser.photoURL || "",
+        });
+      }
 
       setUser(loggedInUser);
-
       return loggedInUser;
     } catch (error) {
       console.error("Google Sign-In Error:", error);
       throw error;
+    } finally {
+      setLoading(false);
     }
   };
 
+  // Update user profile (name/photo)
   const updateUser = (userInfo) => {
     return updateProfile(auth.currentUser, userInfo);
   };
 
+  // Delete user
   const removeUser = (user) => {
     return deleteUser(user);
   };
 
+  // Logout
   const logOut = () => {
+    setLoading(true);
     return signOut(auth);
   };
 
+  // Auto-detect login/logout and manage token
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
-      setUser(currentUser);
-
+    const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
       if (currentUser) {
-        axios.get("http://localhost:5000", {
-          headers: {
-            Authorization: `Bearer ${currentUser.accessToken}`,
-          },
-        });
+        try {
+          const token = await currentUser.getIdToken(true);
+          localStorage.setItem("access-token", token);
+          setUser(currentUser);
+        } catch (err) {
+          console.error("Token fetch error:", err);
+        }
+      } else {
+        localStorage.removeItem("access-token");
+        setUser(null);
       }
-
       setLoading(false);
     });
 
-    return () => {
-      unsubscribe();
-    };
-  }, [auth]);
+    return () => unsubscribe();
+  }, []);
 
   const authInfo = {
     user,
     loading,
     createUser,
     signIn,
-    setUser,
     logOut,
     googleSignIn,
     updateUser,
     removeUser,
+    setUser,
   };
 
   return (

@@ -1,9 +1,13 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useContext } from "react";
 import useAxiosSecure from "../Hooks/AxiosSecure";
 import { Link } from "react-router-dom";
+import Swal from "sweetalert2";
+import AuthContext from "../Providers/AuthContext";
+import { FaTrashAlt } from "react-icons/fa";
 
 const AvailableFoods = () => {
   const axiosSecure = useAxiosSecure();
+  const { user } = useContext(AuthContext);
   const [foods, setFoods] = useState([]);
   const [search, setSearch] = useState("");
   const [sort, setSort] = useState("asc");
@@ -18,9 +22,30 @@ const AvailableFoods = () => {
     }
   };
 
+  const handleDelete = async (id) => {
+    Swal.fire({
+      title: "Are you sure?",
+      text: "This food will be deleted permanently!",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonText: "Yes, delete it!",
+    }).then(async (result) => {
+      if (result.isConfirmed) {
+        try {
+          await axiosSecure.delete(`/foods/${id}`);
+          setFoods((prev) => prev.filter((food) => food._id !== id));
+          Swal.fire("Deleted!", "Food has been deleted.", "success");
+        } catch (error) {
+          Swal.fire("Error!", "Could not delete food.", "error", error.message);
+        }
+      }
+    });
+  };
+
   useEffect(() => {
     fetchFoods();
-  }, [search, sort]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [search, sort, axiosSecure]);
 
   return (
     <div className="p-6 max-w-7xl mx-auto">
@@ -117,13 +142,28 @@ const AvailableFoods = () => {
                   <span className="font-semibold">Expires:</span>{" "}
                   {new Date(food.expireDate).toLocaleString()}
                 </p>
-                <div className="mt-auto">
+                {food.additionalNotes && (
+                  <p className="text-gray-500 italic mb-4">
+                    {food.additionalNotes}
+                  </p>
+                )}
+                <div className="mt-auto flex flex-col gap-3">
                   <Link
                     to={`/foods/${food._id}`}
                     className="btn bg-gradient-to-r from-green-400 to-blue-500 hover:from-blue-500 hover:to-green-400 text-white font-bold w-full py-3 rounded-lg shadow-lg transition-transform hover:scale-105"
                   >
                     View Details
                   </Link>
+
+                  {/* Conditional delete button */}
+                  {food.deletable && food.donorEmail === user?.email && (
+                    <button
+                      onClick={() => handleDelete(food._id)}
+                      className="btn btn-outline btn-error w-full flex justify-center items-center gap-2"
+                    >
+                      <FaTrashAlt /> Delete
+                    </button>
+                  )}
                 </div>
               </div>
             </div>

@@ -55,51 +55,55 @@ const ManageFoods = () => {
   if (foods.length === 0)
     return (
       <div className="flex flex-col items-center justify-center h-64 text-center px-4">
-        <FaBoxOpen className="text-gray-400 text-6xl mb-4" />
-        <h3 className="text-2xl font-semibold text-gray-700 mb-2">
+        <FaBoxOpen className="text-gray-400 text-7xl mb-6 animate-pulse" />
+        <h3 className="text-3xl font-semibold text-gray-700 mb-3">
           No Foods Added Yet
         </h3>
-        <p className="text-gray-500 max-w-md">
+        <p className="text-gray-500 max-w-md mb-6">
           You haven't added any foods yet. Start sharing food to help others!
         </p>
+        {/* Optional: Add a button to go add foods */}
       </div>
     );
 
   return (
-    <div className="p-6 max-w-5xl mx-auto">
-      <h2 className="text-3xl font-bold mb-6 text-green-700 flex items-center gap-3">
-        <FaUtensils /> Manage My Foods
+    <div className="p-6 max-w-6xl mx-auto">
+      <h2 className="text-4xl font-extrabold mb-8 text-green-700 flex items-center gap-3">
+        <FaUtensils className="text-green-600" /> Manage My Foods
       </h2>
-      <div className="overflow-x-auto rounded-lg shadow-lg border border-gray-200">
-        <table className="min-w-full bg-white">
-          <thead className="bg-green-100 text-green-800">
+
+      {/* Responsive Table Wrapper */}
+      <div className="overflow-x-auto rounded-lg shadow-lg border border-green-200">
+        <table className="min-w-full bg-white divide-y divide-green-200">
+          <thead className="bg-green-100 text-green-800 uppercase text-sm font-semibold tracking-wide">
             <tr>
-              <th className="text-left py-3 px-5 font-semibold">Food Name</th>
-              <th className="text-left py-3 px-5 font-semibold">Quantity</th>
-              <th className="text-left py-3 px-5 font-semibold">
-                Pickup Location
-              </th>
-              <th className="text-left py-3 px-5 font-semibold">Expire Date</th>
-              <th className="text-center py-3 px-5 font-semibold">Actions</th>
+              <th className="px-6 py-4">Food Name</th>
+              <th className="px-6 py-4">Quantity</th>
+              <th className="px-6 py-4">Pickup Location</th>
+              <th className="px-6 py-4">Expire Date</th>
+              <th className="px-6 py-4 text-center">Actions</th>
             </tr>
           </thead>
-          <tbody>
+          <tbody className="divide-y divide-green-100">
             {foods.map((food) => (
               <tr
                 key={food._id}
-                className="border-b border-gray-200 hover:bg-green-50 transition"
+                className="hover:bg-green-50 transition-colors cursor-pointer"
               >
-                <td className="py-4 px-5">{food.name}</td>
-                <td className="py-4 px-5">{food.quantity}</td>
-                <td className="py-4 px-5">{food.pickupLocation}</td>
-                <td className="py-4 px-5">
+                <td className="px-6 py-5 font-medium text-green-700">
+                  {food.name}
+                </td>
+                <td className="px-6 py-5">{food.quantity}</td>
+                <td className="px-6 py-5">{food.pickupLocation}</td>
+                <td className="px-6 py-5">
                   {new Date(food.expireDate).toLocaleString()}
                 </td>
-                <td className="py-4 px-5 text-center">
+                <td className="px-6 py-5 text-center">
                   <button
                     onClick={() => handleDelete(food._id)}
-                    className="inline-flex items-center gap-2 bg-red-600 hover:bg-red-700 text-white px-3 py-1 rounded-md text-sm transition"
+                    className="inline-flex items-center gap-2 bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-md text-sm font-semibold shadow-md transition transform hover:scale-105"
                     title="Delete Food"
+                    aria-label={`Delete ${food.name}`}
                   >
                     <FaTrashAlt /> Delete
                   </button>
@@ -108,6 +112,40 @@ const ManageFoods = () => {
             ))}
           </tbody>
         </table>
+      </div>
+
+      {/* Mobile card style fallback */}
+      <div className="mt-10 space-y-6 md:hidden">
+        {foods.map((food) => (
+          <div
+            key={food._id}
+            className="bg-white rounded-lg shadow-md p-5 border border-green-100"
+          >
+            <h3 className="text-xl font-semibold text-green-700 mb-2">
+              {food.name}
+            </h3>
+            <p>
+              <strong>Quantity:</strong> {food.quantity}
+            </p>
+            <p>
+              <strong>Pickup Location:</strong> {food.pickupLocation}
+            </p>
+            <p>
+              <strong>Expire Date:</strong>{" "}
+              {new Date(food.expireDate).toLocaleString()}
+            </p>
+            <div className="mt-4 flex justify-end">
+              <button
+                onClick={() => handleDelete(food._id)}
+                className="inline-flex items-center gap-2 bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-md text-sm font-semibold shadow-md transition transform hover:scale-105"
+                title="Delete Food"
+                aria-label={`Delete ${food.name}`}
+              >
+                <FaTrashAlt /> Delete
+              </button>
+            </div>
+          </div>
+        ))}
       </div>
     </div>
   );
