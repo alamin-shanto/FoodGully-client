@@ -9,6 +9,7 @@ import {
   FaCalendarAlt,
   FaCheckCircle,
 } from "react-icons/fa";
+import FoodRequestModal from "./FoodRequestModal.jsx";
 
 const FoodDetails = () => {
   const { id } = useParams();
@@ -16,6 +17,7 @@ const FoodDetails = () => {
   const { user } = useContext(AuthContext);
   const [food, setFood] = useState(null);
   const [notes, setNotes] = useState("");
+  const [modalOpen, setModalOpen] = useState(false);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -30,29 +32,17 @@ const FoodDetails = () => {
     fetchFood();
   }, [id, axiosSecure]);
 
-  const handleRequest = async () => {
-    const requestData = {
-      foodId: food._id,
-      foodName: food.name,
-      foodImage: food.image,
-      donorName: food.donorName,
-      donorEmail: food.donorEmail,
-      requesterEmail: user.email,
-      requestDate: new Date(),
-      pickupLocation: food.pickupLocation,
-      expireDate: food.expireDate,
-      additionalNotes: notes,
-    };
+  const handleOpenModal = () => {
+    setModalOpen(true);
+  };
 
-    try {
-      const res = await axiosSecure.post("/requests", requestData);
-      if (res.data.insertedId) {
-        Swal.fire("🎉 Success!", "Your request has been submitted!", "success");
-        navigate("/my-requests");
-      }
-    } catch (err) {
-      Swal.fire("Oops!", "Request failed. Try again.", "error", err.message);
-    }
+  const handleCloseModal = () => {
+    setModalOpen(false);
+  };
+
+  // Called after successful request from modal
+  const handleRequestSuccess = () => {
+    navigate("/my-requests");
   };
 
   if (!food)
@@ -124,20 +114,30 @@ const FoodDetails = () => {
           placeholder="Add any additional notes or instructions for the donor..."
           value={notes}
           onChange={(e) => setNotes(e.target.value)}
+          disabled={modalOpen}
         />
         <button
-          onClick={handleRequest}
-          disabled={food.status !== "available"}
-          className={`mt-4 w-full px-6 py-3 text-white font-semibold rounded-lg shadow-md transition-all duration-300 transform hover:scale-[1.02] 
-    ${
-      food.status !== "available"
-        ? "bg-gray-400 cursor-not-allowed"
-        : "bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700"
-    }`}
+          onClick={handleOpenModal}
+          disabled={food.status !== "available" || modalOpen}
+          className={`mt-4 w-full px-6 py-3 text-white font-semibold rounded-lg shadow-md transition-all duration-300 transform hover:scale-[1.02] ${
+            food.status !== "available"
+              ? "bg-gray-400 cursor-not-allowed"
+              : "bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700"
+          }`}
         >
           🚀 Request This Food
         </button>
       </div>
+
+      <FoodRequestModal
+        isOpen={modalOpen}
+        onClose={handleCloseModal}
+        food={food}
+        userEmail={user?.email}
+        initialNotes={notes}
+        onRequestSuccess={handleRequestSuccess}
+        axiosSecure={axiosSecure}
+      />
     </div>
   );
 };
