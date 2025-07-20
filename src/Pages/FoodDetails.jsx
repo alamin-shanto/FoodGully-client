@@ -3,6 +3,12 @@ import { useNavigate, useParams } from "react-router";
 import useAxiosSecure from "../Hooks/AxiosSecure";
 import AuthContext from "../Providers/AuthContext";
 import Swal from "sweetalert2";
+import {
+  FaMapMarkerAlt,
+  FaUser,
+  FaCalendarAlt,
+  FaCheckCircle,
+} from "react-icons/fa";
 
 const FoodDetails = () => {
   const { id } = useParams();
@@ -41,55 +47,95 @@ const FoodDetails = () => {
     try {
       const res = await axiosSecure.post("/requests", requestData);
       if (res.data.insertedId) {
-        Swal.fire("Requested", "Food requested successfully", "success");
+        Swal.fire("🎉 Success!", "Your request has been submitted!", "success");
         navigate("/my-requests");
       }
     } catch (err) {
-      Swal.fire("Error", "Request failed", "error", err);
+      Swal.fire("Oops!", "Request failed. Try again.", "error", err.message);
     }
   };
 
-  if (!food) return <div className="p-4">Loading...</div>;
+  if (!food)
+    return (
+      <div className="p-6 text-center text-gray-400">Loading details...</div>
+    );
 
   return (
-    <div className="max-w-2xl mx-auto p-4">
-      <img
-        src={food.image}
-        alt={food.name}
-        className="w-full h-64 object-cover rounded-md mb-4"
-      />
-      <h2 className="text-2xl font-bold mb-2">{food.name}</h2>
-      <p>
-        <strong>Quantity:</strong> {food.quantity}
-      </p>
-      <p>
-        <strong>Pickup Location:</strong> {food.pickupLocation}
-      </p>
-      <p>
-        <strong>Expire Date:</strong>{" "}
-        {new Date(food.expireDate).toLocaleString()}
-      </p>
-      <p>
-        <strong>Donor:</strong> {food.donorName} ({food.donorEmail})
-      </p>
-      <p>
-        <strong>Status:</strong> {food.status}
-      </p>
+    <div className="max-w-5xl mx-auto p-6 mt-6 bg-gradient-to-br from-white to-blue-50 rounded-2xl shadow-lg border">
+      <div className="grid md:grid-cols-2 gap-8 items-start">
+        <img
+          src={food.image}
+          alt={food.name}
+          className="w-full h-72 object-cover rounded-xl border hover:scale-105 transition duration-300"
+        />
+        <div className="space-y-3">
+          <h2 className="text-3xl font-bold text-blue-900">{food.name}</h2>
+          <p className="text-gray-700">
+            <span className="font-semibold">Quantity:</span>{" "}
+            <span className="text-lg text-indigo-600">{food.quantity}</span>
+          </p>
+          <p className="text-gray-700 flex items-center gap-2">
+            <FaMapMarkerAlt className="text-blue-500" />
+            <span>
+              <strong>Location:</strong> {food.pickupLocation}
+            </span>
+          </p>
+          <p className="text-gray-700 flex items-center gap-2">
+            <FaCalendarAlt className="text-red-400" />
+            <span>
+              <strong>Expires:</strong>{" "}
+              {new Date(food.expireDate).toLocaleDateString()}
+            </span>
+          </p>
+          <p className="text-gray-700 flex items-center gap-2">
+            <FaUser className="text-green-600" />
+            <span>
+              <strong>Donor:</strong> {food.donorName} ({food.donorEmail})
+            </span>
+          </p>
+          <p className="text-gray-700 flex items-center gap-2">
+            <FaCheckCircle
+              className={`text-lg ${
+                food.status === "available" ? "text-green-600" : "text-red-500"
+              }`}
+            />
+            <span className="font-medium">
+              Status:{" "}
+              <span
+                className={`capitalize ${
+                  food.status === "available"
+                    ? "text-green-600"
+                    : "text-red-500"
+                }`}
+              >
+                {food.status}
+              </span>
+            </span>
+          </p>
+        </div>
+      </div>
 
-      <div className="mt-6">
-        <h3 className="text-lg font-semibold mb-2">Request this food</h3>
+      <div className="mt-10">
+        <h3 className="text-xl font-semibold mb-3 text-gray-800">
+          Add a note to your request:
+        </h3>
         <textarea
-          className="textarea textarea-bordered w-full mb-4"
-          placeholder="Add any additional notes..."
+          className="w-full p-4 border rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-400"
+          placeholder="Add any additional notes or instructions for the donor..."
           value={notes}
           onChange={(e) => setNotes(e.target.value)}
         />
         <button
           onClick={handleRequest}
-          className="btn btn-primary w-full"
           disabled={food.status !== "available"}
+          className={`mt-4 w-full px-6 py-3 text-white font-semibold rounded-lg shadow-md transition-all duration-300 transform hover:scale-[1.02] 
+    ${
+      food.status !== "available"
+        ? "bg-gray-400 cursor-not-allowed"
+        : "bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700"
+    }`}
         >
-          Request Now
+          🚀 Request This Food
         </button>
       </div>
     </div>

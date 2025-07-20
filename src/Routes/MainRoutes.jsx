@@ -19,7 +19,7 @@ const MainRoutes = () => {
         <Route path="/" element={<Home />} />
         <Route path="/foods" element={<AvailableFoods />} />
         <Route
-          path="/food/:id"
+          path="/foods/:id"
           element={
             <PrivateRoutes>
               <FoodDetails />

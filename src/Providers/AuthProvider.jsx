@@ -10,85 +10,85 @@ import {
   updateProfile,
 } from "firebase/auth";
 import { useEffect, useState } from "react";
-
 import AuthContext from "./AuthContext";
-import app from "../Firebase/Firebase.config"; 
+import app from "../Firebase/Firebase.config";
+import axios from "axios";
 
-const auth = getAuth(app); 
+const auth = getAuth(app);
 
 const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
 
-  // Create user with email and password
   const createUser = (email, password) => {
     setLoading(true);
     return createUserWithEmailAndPassword(auth, email, password);
   };
 
-  // Login with email and password
   const signIn = (email, password) => {
     setLoading(true);
     return signInWithEmailAndPassword(auth, email, password);
   };
 
-  // Login with Google
   const googleSignIn = async () => {
     setLoading(true);
     const provider = new GoogleAuthProvider();
     try {
       const result = await signInWithPopup(auth, provider);
-      const loggedInUser = result.user;
-
-      // Optionally update profile if missing
-      if (!loggedInUser.displayName || !loggedInUser.photoURL) {
-        await updateProfile(loggedInUser, {
-          displayName: loggedInUser.displayName || "User",
-          photoURL: loggedInUser.photoURL || "",
-        });
-      }
-
-      setUser(loggedInUser);
-      return loggedInUser;
-    } catch (error) {
-      console.error("Google Sign-In Error:", error);
-      throw error;
+      return result.user;
     } finally {
       setLoading(false);
     }
   };
 
-  // Update user profile (name/photo)
-  const updateUser = (userInfo) => {
-    return updateProfile(auth.currentUser, userInfo);
-  };
+  const updateUser = (userInfo) => updateProfile(auth.currentUser, userInfo);
 
-  // Delete user
-  const removeUser = (user) => {
-    return deleteUser(user);
-  };
+  const removeUser = (user) => deleteUser(user);
 
-  // Logout
-  const logOut = () => {
+  const logOut = async () => {
     setLoading(true);
-    return signOut(auth);
+    localStorage.removeItem("access-token");
+    await signOut(auth);
+    setUser(null);
+    setLoading(false);
   };
 
-  // Auto-detect login/logout and manage token
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
+      setLoading(true);
+
       if (currentUser) {
         try {
-          const token = await currentUser.getIdToken(true);
-          localStorage.setItem("access-token", token);
+          // Get fresh Firebase ID token (force refresh)
+          const idToken = await currentUser.getIdToken(true);
+
+          // Request backend JWT
+          const res = await axios.post(
+            "https://food-gully-server.vercel.app/jwt",
+            {},
+            {
+              headers: {
+                Authorization: `Bearer ${idToken}`,
+              },
+            }
+          );
+
+          // Store backend JWT token in localStorage
+          localStorage.setItem("access-token", res.data.token);
+
+          // Set React user state
           setUser(currentUser);
-        } catch (err) {
-          console.error("Token fetch error:", err);
+        } catch (error) {
+          console.error("Backend JWT error:", error);
+          localStorage.removeItem("access-token");
+          setUser(null);
         }
       } else {
+        // No Firebase user logged in
         localStorage.removeItem("access-token");
         setUser(null);
       }
+
       setLoading(false);
     });
 
@@ -104,11 +104,12 @@ const AuthProvider = ({ children }) => {
     googleSignIn,
     updateUser,
     removeUser,
-    setUser,
   };
 
   return (
-    <AuthContext.Provider value={authInfo}>{children}</AuthContext.Provider>
+    <AuthContext.Provider value={authInfo}>
+      {loading ? <div>Loading...</div> : children}
+    </AuthContext.Provider>
   );
 };
 

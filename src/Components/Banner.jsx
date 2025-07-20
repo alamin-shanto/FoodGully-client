@@ -34,8 +34,10 @@ const BannerSlider = () => {
 
   useEffect(() => {
     const animateSlide = async () => {
+      if (!scope.current) return;
       await animate(scope.current, { opacity: 0, x: -50 }, { duration: 0.3 });
       setCurrent((prev) => (prev === slides.length - 1 ? 0 : prev + 1));
+      if (!scope.current) return;
       await animate(scope.current, { opacity: 1, x: 0 }, { duration: 0.6 });
     };
 
