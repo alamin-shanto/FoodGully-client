@@ -1,55 +1,79 @@
-import React, { useEffect, useState, useContext } from "react";
+import React, { useContext, useState } from "react";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import useAxiosSecure from "../Hooks/AxiosSecure";
 import { Link } from "react-router-dom";
 import Swal from "sweetalert2";
 import AuthContext from "../Providers/AuthContext";
 import { FaTrashAlt } from "react-icons/fa";
+import FoodRequestModal from "./FoodRequestModal"; // Ensure this path is correct
 
 const AvailableFoods = () => {
   const axiosSecure = useAxiosSecure();
   const { user } = useContext(AuthContext);
-  const [foods, setFoods] = useState([]);
+  const queryClient = useQueryClient();
+
   const [search, setSearch] = useState("");
   const [sort, setSort] = useState("asc");
   const [columns, setColumns] = useState(3);
 
-  const fetchFoods = async () => {
-    try {
-      const res = await axiosSecure.get(`/foods?search=${search}&sort=${sort}`);
-      setFoods(res.data);
-    } catch (error) {
-      console.error("Error fetching foods:", error);
-    }
-  };
+  // Modal state
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [selectedFood, setSelectedFood] = useState(null);
 
-  const handleDelete = async (id) => {
+  const {
+    data: foods = [],
+    isLoading,
+    isError,
+    error,
+    refetch,
+  } = useQuery({
+    queryKey: ["availableFoods", search, sort],
+    queryFn: async () => {
+      const res = await axiosSecure.get(
+        `/foods?search=${encodeURIComponent(
+          search
+        )}&sort=${sort}&status=available`
+      );
+      return res.data;
+    },
+  });
+
+  const deleteMutation = useMutation({
+    mutationFn: async (id) => await axiosSecure.delete(`/foods/${id}`),
+    onSuccess: () => {
+      Swal.fire("Deleted!", "Food has been deleted.", "success");
+      queryClient.invalidateQueries(["availableFoods"]);
+    },
+    onError: () => {
+      Swal.fire("Error!", "Could not delete food.", "error");
+    },
+  });
+
+  const handleDelete = (id) => {
     Swal.fire({
       title: "Are you sure?",
       text: "This food will be deleted permanently!",
       icon: "warning",
       showCancelButton: true,
       confirmButtonText: "Yes, delete it!",
-    }).then(async (result) => {
+    }).then((result) => {
       if (result.isConfirmed) {
-        try {
-          await axiosSecure.delete(`/foods/${id}`);
-          setFoods((prev) => prev.filter((food) => food._id !== id));
-          Swal.fire("Deleted!", "Food has been deleted.", "success");
-        } catch (error) {
-          Swal.fire("Error!", "Could not delete food.", "error", error.message);
-        }
+        deleteMutation.mutate(id);
       }
     });
   };
 
-  useEffect(() => {
-    fetchFoods();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [search, sort, axiosSecure]);
+  const openRequestModal = (food) => {
+    setSelectedFood(food);
+    setIsModalOpen(true);
+  };
+
+  const onRequestSuccess = () => {
+    refetch();
+  };
 
   return (
     <div className="p-6 max-w-7xl mx-auto">
-      {/* Controls */}
       <div className="flex flex-col md:flex-row justify-between items-center mb-8 gap-5">
         <input
           type="text"
@@ -58,7 +82,6 @@ const AvailableFoods = () => {
           onChange={(e) => setSearch(e.target.value)}
           className="input input-bordered w-full md:max-w-xs text-lg"
         />
-
         <div className="flex gap-4">
           <select
             className="select select-bordered text-lg"
@@ -68,44 +91,27 @@ const AvailableFoods = () => {
             <option value="asc">Sort by Expire Date (Asc)</option>
             <option value="desc">Sort by Expire Date (Desc)</option>
           </select>
-
           <button
             onClick={() => setColumns(columns === 3 ? 2 : 3)}
             className="btn btn-outline text-lg font-semibold px-6"
-            aria-label="Toggle columns"
+            type="button"
           >
             {columns === 3 ? "Show 2 Columns" : "Show 3 Columns"}
           </button>
         </div>
       </div>
 
-      {/* Foods grid or empty state */}
-      {foods.length === 0 ? (
-        <div className="flex flex-col items-center justify-center py-32 text-center text-gray-400 select-none">
-          <svg
-            className="w-24 h-24 mb-6 text-green-400 animate-pulse"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2"
-            viewBox="0 0 24 24"
-            aria-hidden="true"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              d="M3 10h18M3 14h18M3 18h18"
-            />
-          </svg>
-          <h3 className="text-2xl font-semibold mb-2 text-green-600">
-            No foods found
-          </h3>
-          <p className="max-w-sm text-gray-500 mb-6">
-            We couldn't find any food matching your search or filter. Try
-            broadening your criteria or add some food to share!
-          </p>
+      {isLoading ? (
+        <p className="text-center text-gray-500">Loading foods...</p>
+      ) : isError ? (
+        <p className="text-center text-red-500">Error: {error.message}</p>
+      ) : foods.length === 0 ? (
+        <div className="text-center text-gray-500 py-20">
+          <h2 className="text-2xl font-semibold mb-2">No Foods Found</h2>
+          <p className="mb-6">Try adjusting your search or add a new food.</p>
           <Link
             to="/add-food"
-            className="btn bg-gradient-to-r from-green-400 to-blue-500 hover:from-blue-500 hover:to-green-400 text-white font-bold px-8 py-3 rounded-lg shadow-lg transition-transform hover:scale-105"
+            className="btn bg-green-500 hover:bg-green-600 text-white px-6 py-2 rounded"
           >
             Add Food Now
           </Link>
@@ -119,47 +125,55 @@ const AvailableFoods = () => {
           {foods.map((food) => (
             <div
               key={food._id}
-              className="bg-white rounded-xl shadow-lg hover:shadow-2xl transform hover:scale-[1.03] transition-transform duration-300 flex flex-col overflow-hidden"
+              className="bg-white rounded-xl shadow hover:shadow-xl transition-transform transform hover:scale-[1.02] flex flex-col overflow-hidden"
             >
               <img
                 src={food.image}
                 alt={food.name}
-                className="h-52 w-full object-cover rounded-t-xl"
+                className="h-52 w-full object-cover"
+                loading="lazy"
               />
-              <div className="p-6 flex flex-col flex-grow">
-                <h2 className="text-2xl font-extrabold text-green-700 mb-3 tracking-wide">
+              <div className="p-5 flex flex-col flex-grow">
+                <h3 className="text-xl font-bold text-green-700 mb-2">
                   {food.name}
-                </h2>
-                <p className="text-gray-700 mb-1">
-                  <span className="font-semibold">Quantity:</span>{" "}
-                  {food.quantity}
+                </h3>
+                <p>
+                  <strong>Quantity:</strong> {food.quantity}
                 </p>
-                <p className="text-gray-700 mb-1">
-                  <span className="font-semibold">Pickup:</span>{" "}
-                  {food.pickupLocation}
+                <p>
+                  <strong>Pickup:</strong> {food.pickupLocation}
                 </p>
-                <p className="text-gray-700 mb-4">
-                  <span className="font-semibold">Expires:</span>{" "}
+                <p className="mb-2">
+                  <strong>Expires:</strong>{" "}
                   {new Date(food.expireDate).toLocaleString()}
                 </p>
                 {food.additionalNotes && (
-                  <p className="text-gray-500 italic mb-4">
+                  <p className="italic text-gray-600 mb-3">
                     {food.additionalNotes}
                   </p>
                 )}
-                <div className="mt-auto flex flex-col gap-3">
+
+                <div className="mt-auto flex flex-col gap-2">
+                  <button
+                    onClick={() => openRequestModal(food)}
+                    className="btn bg-indigo-500 hover:bg-indigo-600 text-white py-2 rounded"
+                    type="button"
+                  >
+                    Request Food
+                  </button>
+
                   <Link
                     to={`/foods/${food._id}`}
-                    className="btn bg-gradient-to-r from-green-400 to-blue-500 hover:from-blue-500 hover:to-green-400 text-white font-bold w-full py-3 rounded-lg shadow-lg transition-transform hover:scale-105"
+                    className="btn bg-blue-500 hover:bg-blue-600 text-white py-2 rounded text-center"
                   >
                     View Details
                   </Link>
 
-                  {/* Conditional delete button */}
                   {food.deletable && food.donorEmail === user?.email && (
                     <button
                       onClick={() => handleDelete(food._id)}
-                      className="btn btn-outline btn-error w-full flex justify-center items-center gap-2"
+                      className="btn btn-error btn-outline py-2 flex justify-center items-center gap-2"
+                      type="button"
                     >
                       <FaTrashAlt /> Delete
                     </button>
@@ -169,6 +183,21 @@ const AvailableFoods = () => {
             </div>
           ))}
         </div>
+      )}
+
+      {/* Food Request Modal */}
+      {selectedFood && (
+        <FoodRequestModal
+          isOpen={isModalOpen}
+          onClose={() => setIsModalOpen(false)}
+          food={selectedFood}
+          user={user}
+          onRequestSuccess={() => {
+            onRequestSuccess();
+            setIsModalOpen(false);
+          }}
+          axiosSecure={axiosSecure}
+        />
       )}
     </div>
   );

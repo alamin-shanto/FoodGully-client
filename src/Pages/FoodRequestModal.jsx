@@ -1,3 +1,4 @@
+// FoodRequestModal.jsx
 import React, { useState, useEffect } from "react";
 import Swal from "sweetalert2";
 
@@ -5,23 +6,23 @@ const FoodRequestModal = ({
   isOpen,
   onClose,
   food,
+  user,
   userEmail,
-  initialNotes,
   onRequestSuccess,
   axiosSecure,
 }) => {
-  const [notes, setNotes] = useState(initialNotes || "");
+  const [notes, setNotes] = useState("");
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    if (isOpen) setNotes(initialNotes || "");
-  }, [isOpen, initialNotes]);
+    if (isOpen) setNotes("");
+  }, [isOpen]);
 
   if (!isOpen) return null;
 
   const handleConfirmRequest = async () => {
-    if (!food || !userEmail) {
-      Swal.fire("Error", "Missing required information.", "error");
+    if (!food || !(userEmail || user?.email)) {
+      Swal.fire("Error", "Missing required user or food info.", "error");
       return;
     }
 
@@ -30,29 +31,24 @@ const FoodRequestModal = ({
       const requestData = {
         foodId: food._id,
         foodName: food.name,
-        foodImage: food.image,
         donorName: food.donorName,
         donorEmail: food.donorEmail,
-        requesterEmail: userEmail,
-        requestDate: new Date().toISOString(),
         pickupLocation: food.pickupLocation,
         expireDate: food.expireDate,
+        requesterName: user?.displayName || "Anonymous",
+        requesterEmail: userEmail || user.email,
+        requesterPhoto: user?.photoURL || "",
         additionalNotes: notes,
+        requestDate: new Date().toISOString(),
       };
 
       const res = await axiosSecure.post("/requests", requestData);
-      if (res.data.insertedId) {
-        Swal.fire(
-          "🎉 Success!",
-          "Your food request has been submitted!",
-          "success"
-        );
-        setNotes("");
-        onRequestSuccess();
-        onClose();
-      } else {
-        throw new Error("Request failed");
-      }
+      if (!res.data.insertedId) throw new Error("Insert failed");
+
+      await axiosSecure.patch(`/foods/${food._id}`, { status: "requested" });
+
+      onRequestSuccess(); // triggers Swal + redirect
+      onClose();
     } catch (err) {
       Swal.fire("Oops!", err.message || "Request failed", "error");
     } finally {
@@ -68,14 +64,11 @@ const FoodRequestModal = ({
       />
       <div className="fixed inset-0 flex items-center justify-center z-50 p-4">
         <div className="w-full max-w-2xl bg-white bg-opacity-90 backdrop-blur-md border border-blue-200 rounded-2xl shadow-2xl overflow-y-auto max-h-[90vh] relative animate-fade-in">
-          {/* Header */}
           <div className="px-6 py-4 rounded-t-2xl bg-gradient-to-r from-blue-600 to-indigo-700">
             <h2 className="text-2xl font-bold text-white">
               🍽️ Confirm Food Request
             </h2>
           </div>
-
-          {/* Content */}
           <div className="p-6 space-y-4 text-gray-700">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {[
@@ -83,7 +76,7 @@ const FoodRequestModal = ({
                 { label: "Food ID", value: food._id },
                 { label: "Donor Name", value: food.donorName },
                 { label: "Donor Email", value: food.donorEmail },
-                { label: "Your Email", value: userEmail },
+                { label: "Your Email", value: userEmail || user?.email },
                 { label: "Request Date", value: new Date().toLocaleString() },
                 { label: "Pickup Location", value: food.pickupLocation },
                 {
@@ -125,7 +118,6 @@ const FoodRequestModal = ({
             </div>
           </div>
 
-          {/* Footer Buttons */}
           <div className="flex justify-end px-6 py-4 bg-gray-100 rounded-b-2xl space-x-3">
             <button
               onClick={onClose}

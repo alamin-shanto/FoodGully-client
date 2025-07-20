@@ -17,7 +17,11 @@ const MyRequest = () => {
       setLoading(false);
     } catch (err) {
       setLoading(false);
-      Swal.fire("Error", "Failed to fetch your requests", "error", err);
+      Swal.fire(
+        "Error",
+        "Failed to fetch your requests: " + (err.message || err),
+        "error"
+      );
     }
   }, [axiosSecure]);
 
@@ -44,9 +48,8 @@ const MyRequest = () => {
       } catch (error) {
         Swal.fire(
           "Error",
-          "Failed to cancel the request",
-          "error",
-          error.message
+          "Failed to cancel the request: " + (error.message || error),
+          "error"
         );
       }
     }

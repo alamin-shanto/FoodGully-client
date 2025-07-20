@@ -1,11 +1,10 @@
-// FoodDetails.jsx (Converted to TanStack Query with useMutation + Swal)
+// FoodDetails.jsx
 import React, { useContext, useState } from "react";
 import { useNavigate, useParams } from "react-router";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
 import useAxiosSecure from "../Hooks/AxiosSecure";
 import AuthContext from "../Providers/AuthContext";
 import Swal from "sweetalert2";
-
 import {
   FaMapMarkerAlt,
   FaUser,
@@ -20,7 +19,6 @@ const FoodDetails = () => {
   const { user } = useContext(AuthContext);
   const [showModal, setShowModal] = useState(false);
   const navigate = useNavigate();
-  const queryClient = useQueryClient();
 
   const {
     data: food,
@@ -36,37 +34,13 @@ const FoodDetails = () => {
     enabled: !!id,
   });
 
-  const mutation = useMutation({
-    mutationFn: async (requestData) => {
-      await axiosSecure.post("/requests", requestData);
-      await axiosSecure.patch(`/foods/${requestData.foodId}`, {
-        status: "requested",
-      });
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries(["food", id]);
-      Swal.fire({
-        icon: "success",
-        title: "Request Successful",
-        text: "Your food request has been submitted.",
-      });
-      navigate("/my-requests");
-    },
-    onError: () => {
-      Swal.fire({
-        icon: "error",
-        title: "Request Failed",
-        text: "Something went wrong while requesting the food.",
-      });
-    },
-  });
-
-  const handleSubmitRequest = (note) => {
-    mutation.mutate({
-      requesterEmail: user?.email,
-      foodId: id,
-      note,
+  const handleRequestSuccess = () => {
+    Swal.fire({
+      icon: "success",
+      title: "Request Successful",
+      text: "Your food request has been submitted.",
     });
+    navigate("/my-requests");
   };
 
   if (isLoading)
@@ -150,23 +124,23 @@ const FoodDetails = () => {
           onClick={() => setShowModal(true)}
           disabled={food.status !== "available"}
           className={`mt-4 w-full px-6 py-3 text-white font-semibold rounded-lg shadow-md transition-all duration-300 transform hover:scale-[1.02] 
-    ${
-      food.status !== "available"
-        ? "bg-gray-400 cursor-not-allowed"
-        : "bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700"
-    }`}
+            ${
+              food.status !== "available"
+                ? "bg-gray-400 cursor-not-allowed"
+                : "bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700"
+            }`}
         >
           🚀 Request This Food
         </button>
       </div>
 
-      {/* Modal Component */}
       <FoodRequestModal
         isOpen={showModal}
         onClose={() => setShowModal(false)}
         food={food}
+        user={user}
         userEmail={user?.email}
-        onRequestSuccess={handleSubmitRequest}
+        onRequestSuccess={handleRequestSuccess}
         axiosSecure={axiosSecure}
       />
     </div>
