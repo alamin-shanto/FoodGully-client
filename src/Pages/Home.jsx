@@ -3,6 +3,7 @@ import Banner from "../Components/Banner";
 
 import FeaturedSection from "../Components/FeaturedSection";
 import CountUpCard from "../Components/CountUpCard";
+import ShortQuotes from "../Components/ShortQuotes";
 
 const Home = () => {
   return (
@@ -10,6 +11,7 @@ const Home = () => {
       <Banner />
       <FeaturedSection />
       <CountUpCard />
+      <ShortQuotes />
     </div>
   );
 };

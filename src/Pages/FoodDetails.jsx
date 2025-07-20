@@ -1,53 +1,84 @@
-import React, { useContext, useEffect, useState } from "react";
+// FoodDetails.jsx (Converted to TanStack Query with useMutation + Swal)
+import React, { useContext, useState } from "react";
 import { useNavigate, useParams } from "react-router";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import useAxiosSecure from "../Hooks/AxiosSecure";
 import AuthContext from "../Providers/AuthContext";
 import Swal from "sweetalert2";
+
 import {
   FaMapMarkerAlt,
   FaUser,
   FaCalendarAlt,
   FaCheckCircle,
 } from "react-icons/fa";
-import FoodRequestModal from "./FoodRequestModal.jsx";
+import FoodRequestModal from "./FoodRequestModal";
 
 const FoodDetails = () => {
   const { id } = useParams();
   const axiosSecure = useAxiosSecure();
   const { user } = useContext(AuthContext);
-  const [food, setFood] = useState(null);
-  const [notes, setNotes] = useState("");
-  const [modalOpen, setModalOpen] = useState(false);
+  const [showModal, setShowModal] = useState(false);
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
 
-  useEffect(() => {
-    const fetchFood = async () => {
-      try {
-        const res = await axiosSecure.get(`/foods/${id}`);
-        setFood(res.data);
-      } catch (err) {
-        console.error(err);
-      }
-    };
-    fetchFood();
-  }, [id, axiosSecure]);
+  const {
+    data: food,
+    isLoading,
+    isError,
+    error,
+  } = useQuery({
+    queryKey: ["food", id],
+    queryFn: async () => {
+      const res = await axiosSecure.get(`/foods/${id}`);
+      return res.data;
+    },
+    enabled: !!id,
+  });
 
-  const handleOpenModal = () => {
-    setModalOpen(true);
+  const mutation = useMutation({
+    mutationFn: async (requestData) => {
+      await axiosSecure.post("/requests", requestData);
+      await axiosSecure.patch(`/foods/${requestData.foodId}`, {
+        status: "requested",
+      });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries(["food", id]);
+      Swal.fire({
+        icon: "success",
+        title: "Request Successful",
+        text: "Your food request has been submitted.",
+      });
+      navigate("/my-requests");
+    },
+    onError: () => {
+      Swal.fire({
+        icon: "error",
+        title: "Request Failed",
+        text: "Something went wrong while requesting the food.",
+      });
+    },
+  });
+
+  const handleSubmitRequest = (note) => {
+    mutation.mutate({
+      requesterEmail: user?.email,
+      foodId: id,
+      note,
+    });
   };
 
-  const handleCloseModal = () => {
-    setModalOpen(false);
-  };
-
-  // Called after successful request from modal
-  const handleRequestSuccess = () => {
-    navigate("/my-requests");
-  };
-
-  if (!food)
+  if (isLoading)
     return (
       <div className="p-6 text-center text-gray-400">Loading details...</div>
+    );
+
+  if (isError)
+    return (
+      <div className="p-6 text-center text-red-500">
+        Failed to load food details: {error.message}
+      </div>
     );
 
   return (
@@ -112,30 +143,30 @@ const FoodDetails = () => {
         <textarea
           className="w-full p-4 border rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-400"
           placeholder="Add any additional notes or instructions for the donor..."
-          value={notes}
-          onChange={(e) => setNotes(e.target.value)}
-          disabled={modalOpen}
+          readOnly
+          value="Click the request button to write note"
         />
         <button
-          onClick={handleOpenModal}
-          disabled={food.status !== "available" || modalOpen}
-          className={`mt-4 w-full px-6 py-3 text-white font-semibold rounded-lg shadow-md transition-all duration-300 transform hover:scale-[1.02] ${
-            food.status !== "available"
-              ? "bg-gray-400 cursor-not-allowed"
-              : "bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700"
-          }`}
+          onClick={() => setShowModal(true)}
+          disabled={food.status !== "available"}
+          className={`mt-4 w-full px-6 py-3 text-white font-semibold rounded-lg shadow-md transition-all duration-300 transform hover:scale-[1.02] 
+    ${
+      food.status !== "available"
+        ? "bg-gray-400 cursor-not-allowed"
+        : "bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700"
+    }`}
         >
           🚀 Request This Food
         </button>
       </div>
 
+      {/* Modal Component */}
       <FoodRequestModal
-        isOpen={modalOpen}
-        onClose={handleCloseModal}
+        isOpen={showModal}
+        onClose={() => setShowModal(false)}
         food={food}
         userEmail={user?.email}
-        initialNotes={notes}
-        onRequestSuccess={handleRequestSuccess}
+        onRequestSuccess={handleSubmitRequest}
         axiosSecure={axiosSecure}
       />
     </div>
