@@ -2,13 +2,16 @@ import React, { useCallback, useContext, useEffect, useState } from "react";
 import useAxiosSecure from "../Hooks/AxiosSecure";
 import AuthContext from "../Providers/AuthContext";
 import Swal from "sweetalert2";
-import { FaUtensils, FaTrashAlt, FaBoxOpen } from "react-icons/fa";
+import { FaUtensils, FaTrashAlt, FaEdit, FaBoxOpen } from "react-icons/fa";
+import UpdateFoodModal from "./UpdateFoodModal";
 
 const ManageFoods = () => {
   const axiosSecure = useAxiosSecure();
   const { user } = useContext(AuthContext);
   const [foods, setFoods] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [selectedFood, setSelectedFood] = useState(null);
+  const [modalOpen, setModalOpen] = useState(false);
 
   const fetchMyFoods = useCallback(async () => {
     try {
@@ -45,6 +48,11 @@ const ManageFoods = () => {
     });
   };
 
+  const handleUpdateClick = (food) => {
+    setSelectedFood(food);
+    setModalOpen(true);
+  };
+
   if (loading)
     return (
       <div className="flex justify-center items-center h-64">
@@ -62,7 +70,6 @@ const ManageFoods = () => {
         <p className="text-gray-500 max-w-md mb-6">
           You haven't added any foods yet. Start sharing food to help others!
         </p>
-        {/* Optional: Add a button to go add foods */}
       </div>
     );
 
@@ -72,7 +79,7 @@ const ManageFoods = () => {
         <FaUtensils className="text-green-600" /> Manage My Foods
       </h2>
 
-      {/* Responsive Table Wrapper */}
+      {/* Table view */}
       <div className="hidden md:block overflow-x-auto rounded-lg shadow-lg border border-green-200">
         <table className="min-w-full bg-white divide-y divide-green-200">
           <thead className="bg-green-100 text-green-800 uppercase text-sm font-semibold tracking-wide">
@@ -88,7 +95,7 @@ const ManageFoods = () => {
             {foods.map((food) => (
               <tr
                 key={food._id}
-                className="hover:bg-green-50 transition-colors cursor-pointer"
+                className="hover:bg-green-50 transition-colors"
               >
                 <td className="px-6 py-5 font-medium text-green-700">
                   {food.name}
@@ -98,21 +105,21 @@ const ManageFoods = () => {
                 <td className="px-6 py-5">
                   {new Date(food.expireDate).toLocaleString()}
                 </td>
-                <td className="px-6 py-5 text-center">
+                <td className="px-6 py-5 text-center flex justify-center gap-3">
+                  <button
+                    onClick={() => handleUpdateClick(food)}
+                    className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 flex items-center gap-2"
+                  >
+                    <FaEdit /> Update
+                  </button>
                   <button
                     onClick={() => handleDelete(food._id)}
                     disabled={!food.deletable}
-                    className={`inline-flex items-center gap-2 px-4 py-2 rounded-md text-sm font-semibold shadow-md transition transform ${
+                    className={`px-4 py-2 rounded-md text-white flex items-center gap-2 ${
                       food.deletable
-                        ? "bg-red-600 hover:bg-red-700 text-white hover:scale-105"
-                        : "bg-gray-400 text-white cursor-not-allowed"
+                        ? "bg-red-600 hover:bg-red-700"
+                        : "bg-gray-400 cursor-not-allowed"
                     }`}
-                    title={
-                      food.deletable
-                        ? `Delete ${food.name}`
-                        : "This food cannot be deleted"
-                    }
-                    aria-label={`Delete ${food.name}`}
                   >
                     <FaTrashAlt /> Delete
                   </button>
@@ -123,7 +130,7 @@ const ManageFoods = () => {
         </table>
       </div>
 
-      {/* Mobile card style fallback */}
+      {/* Mobile Cards */}
       <div className="mt-10 space-y-6 md:hidden">
         {foods.map((food) => (
           <div
@@ -143,21 +150,21 @@ const ManageFoods = () => {
               <strong>Expire Date:</strong>{" "}
               {new Date(food.expireDate).toLocaleString()}
             </p>
-            <div className="mt-4 flex justify-end">
+            <div className="mt-4 flex gap-3">
+              <button
+                onClick={() => handleUpdateClick(food)}
+                className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 flex items-center gap-2"
+              >
+                <FaEdit /> Update
+              </button>
               <button
                 onClick={() => handleDelete(food._id)}
                 disabled={!food.deletable}
-                className={`inline-flex items-center gap-2 px-4 py-2 rounded-md text-sm font-semibold shadow-md transition transform ${
+                className={`px-4 py-2 rounded-md text-white flex items-center gap-2 ${
                   food.deletable
-                    ? "bg-red-600 hover:bg-red-700 text-white hover:scale-105"
-                    : "bg-gray-400 text-white cursor-not-allowed"
+                    ? "bg-red-600 hover:bg-red-700"
+                    : "bg-gray-400 cursor-not-allowed"
                 }`}
-                title={
-                  food.deletable
-                    ? `Delete ${food.name}`
-                    : "This food cannot be deleted"
-                }
-                aria-label={`Delete ${food.name}`}
               >
                 <FaTrashAlt /> Delete
               </button>
@@ -165,6 +172,15 @@ const ManageFoods = () => {
           </div>
         ))}
       </div>
+
+      {/* Modal for Update */}
+      <UpdateFoodModal
+        isOpen={modalOpen}
+        food={selectedFood}
+        onClose={() => setModalOpen(false)}
+        onUpdate={fetchMyFoods}
+        axiosSecure={axiosSecure}
+      />
     </div>
   );
 };

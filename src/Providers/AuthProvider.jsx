@@ -42,7 +42,6 @@ const AuthProvider = ({ children }) => {
   };
 
   const updateUser = (userInfo) => updateProfile(auth.currentUser, userInfo);
-
   const removeUser = (user) => deleteUser(user);
 
   const logOut = async () => {
@@ -59,10 +58,10 @@ const AuthProvider = ({ children }) => {
 
       if (currentUser) {
         try {
-          // Get fresh Firebase ID token (force refresh)
+          // 🔄 Always force-refresh Firebase ID token
           const idToken = await currentUser.getIdToken(true);
 
-          // Request backend JWT
+          // 🔐 Send ID token to backend for JWT
           const res = await axios.post(
             "https://food-gully-server.vercel.app/jwt",
             {},
@@ -73,10 +72,9 @@ const AuthProvider = ({ children }) => {
             }
           );
 
-          // Store backend JWT token in localStorage
+          // ✅ Store JWT from backend
           localStorage.setItem("access-token", res.data.token);
 
-          // Set React user state
           setUser(currentUser);
         } catch (error) {
           console.error("Backend JWT error:", error);
@@ -84,7 +82,6 @@ const AuthProvider = ({ children }) => {
           setUser(null);
         }
       } else {
-        // No Firebase user logged in
         localStorage.removeItem("access-token");
         setUser(null);
       }

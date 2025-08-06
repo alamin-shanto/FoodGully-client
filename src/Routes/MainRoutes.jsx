@@ -10,6 +10,7 @@ import Register from "../Pages/Register";
 import ManageFoods from "../Pages/ManageFoods";
 import Navbar from "../Components/Navbar";
 import { Route, Routes } from "react-router";
+import NotFound from "../Pages/NotFound";
 
 const MainRoutes = () => {
   return (
@@ -52,6 +53,7 @@ const MainRoutes = () => {
         />
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
+        <Route path="*" element={<NotFound />} />
       </Routes>
     </div>
   );

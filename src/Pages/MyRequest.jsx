@@ -1,33 +1,30 @@
-import React, { useCallback, useContext, useEffect, useState } from "react";
+import React from "react";
+import { useQuery } from "@tanstack/react-query";
 import useAxiosSecure from "../Hooks/AxiosSecure";
-import AuthContext from "../Providers/AuthContext";
+import { format } from "date-fns";
 import Swal from "sweetalert2";
 import { Link } from "react-router-dom";
+import { FaClock, FaMapMarkerAlt, FaUser, FaInfoCircle } from "react-icons/fa";
 
-const MyRequest = () => {
+const truncateText = (text, length = 40) =>
+  text.length > length ? text.slice(0, length) + "…" : text;
+
+const MyRequests = () => {
   const axiosSecure = useAxiosSecure();
-  const { user } = useContext(AuthContext);
-  const [requests, setRequests] = useState([]);
-  const [loading, setLoading] = useState(true);
 
-  const fetchMyRequests = useCallback(async () => {
-    try {
+  const {
+    data: requests = [],
+    isLoading,
+    refetch,
+    isError,
+    error,
+  } = useQuery({
+    queryKey: ["myRequests"],
+    queryFn: async () => {
       const res = await axiosSecure.get("/my-requests");
-      setRequests(res.data);
-      setLoading(false);
-    } catch (err) {
-      setLoading(false);
-      Swal.fire(
-        "Error",
-        "Failed to fetch your requests: " + (err.message || err),
-        "error"
-      );
-    }
-  }, [axiosSecure]);
-
-  useEffect(() => {
-    if (user) fetchMyRequests();
-  }, [user, fetchMyRequests]);
+      return res.data;
+    },
+  });
 
   const handleCancel = async (requestId) => {
     const confirmResult = await Swal.fire({
@@ -42,27 +39,43 @@ const MyRequest = () => {
 
     if (confirmResult.isConfirmed) {
       try {
-        await axiosSecure.delete(`/requests/${requestId}`);
+        await axiosSecure.delete(`/my-requests/${requestId}`);
         Swal.fire("Canceled", "Your request was canceled.", "success");
-        fetchMyRequests();
-      } catch (error) {
+        refetch();
+      } catch (err) {
         Swal.fire(
           "Error",
-          "Failed to cancel the request: " + (error.message || error),
+          "Failed to cancel the request: " + (err.message || err),
           "error"
         );
       }
     }
   };
 
-  if (loading)
+  const formatDate = (dateString) => {
+    if (!dateString) return "N/A";
+    const date = new Date(dateString);
+    if (isNaN(date)) return "Invalid date";
+    return format(date, "PP");
+  };
+
+  if (isLoading) {
     return (
       <div className="flex justify-center items-center h-40 text-green-600 font-semibold text-xl">
         Loading your requests...
       </div>
     );
+  }
 
-  if (requests.length === 0)
+  if (isError) {
+    return (
+      <div className="text-center text-red-500 font-semibold py-10">
+        Error fetching your requests: {error?.message || "Unknown error"}
+      </div>
+    );
+  }
+
+  if (requests.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center py-20 text-center text-gray-400 select-none">
         <svg
@@ -94,128 +107,64 @@ const MyRequest = () => {
         </Link>
       </div>
     );
+  }
 
   return (
-    <div className="p-6 max-w-7xl mx-auto">
-      <h2 className="text-3xl font-extrabold mb-6 text-green-700">
-        My Food Requests
-      </h2>
-
-      {/* Table for md and above */}
-      <div className="hidden md:block overflow-x-auto rounded-lg shadow-lg border border-green-200 hide-scrollbar">
-        <table className="table-auto w-full text-left border-collapse">
-          <thead className="bg-green-100 text-green-700 font-semibold text-lg">
-            <tr>
-              <th className="w-1/6 px-6 py-3 border-b border-green-300">
-                Food Name
-              </th>
-              <th className="w-1/6 px-6 py-3 border-b border-green-300">
-                Donor Name
-              </th>
-              <th className="w-1/6 px-6 py-3 border-b border-green-300">
-                Pickup Location
-              </th>
-              <th className="w-1/6 px-6 py-3 border-b border-green-300">
-                Expire Date
-              </th>
-              <th className="w-1/6 px-6 py-3 border-b border-green-300">
-                Request Date
-              </th>
-              <th className="w-1/6 px-6 py-3 border-b border-green-300">
-                Notes
-              </th>
-              <th className="w-24 px-6 py-3 border-b border-green-300 text-center">
-                Action
-              </th>
-            </tr>
-          </thead>
-          <tbody>
-            {requests.map((req) => (
-              <tr
-                key={req._id}
-                className="even:bg-green-50 hover:bg-green-100 transition-colors"
-              >
-                <td className="px-6 py-4 border-b border-green-200 break-words">
-                  {req.foodName}
-                </td>
-                <td className="px-6 py-4 border-b border-green-200 break-words">
-                  {req.donorName}
-                </td>
-                <td className="px-6 py-4 border-b border-green-200 break-words">
-                  {req.pickupLocation}
-                </td>
-                <td className="px-6 py-4 border-b border-green-200 break-words">
-                  {new Date(req.expireDate).toLocaleString()}
-                </td>
-                <td className="px-6 py-4 border-b border-green-200 break-words">
-                  {new Date(req.requestDate).toLocaleString()}
-                </td>
-                <td className="px-6 py-4 border-b border-green-200 break-words">
-                  {req.additionalNotes || "-"}
-                </td>
-                <td className="px-6 py-4 border-b border-green-200 text-center">
-                  <button
-                    onClick={() => handleCancel(req._id)}
-                    className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-md shadow-md transition duration-200"
-                  >
-                    Cancel
-                  </button>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
-
-      {/* Card view for mobile */}
-      <div className="md:hidden space-y-4">
-        {requests.map((req) => (
-          <div
-            key={req._id}
-            className="p-4 border rounded-lg shadow-sm bg-white relative"
-          >
-            <p>
-              <strong>Food Name:</strong> {req.foodName}
-            </p>
-            <p>
-              <strong>Donor Name:</strong> {req.donorName}
-            </p>
-            <p>
-              <strong>Pickup Location:</strong> {req.pickupLocation}
-            </p>
-            <p>
-              <strong>Expire Date:</strong>{" "}
-              {new Date(req.expireDate).toLocaleString()}
-            </p>
-            <p>
-              <strong>Request Date:</strong>{" "}
-              {new Date(req.requestDate).toLocaleString()}
-            </p>
-            <p>
-              <strong>Notes:</strong> {req.additionalNotes || "-"}
-            </p>
-            <button
-              onClick={() => handleCancel(req._id)}
-              className="mt-4 bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-md shadow-md w-full"
+    <div className="px-4 sm:px-6 md:px-8 py-8 max-w-6xl mx-auto grid gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
+      {requests.map((req) => (
+        <div
+          key={req._id}
+          className="bg-white shadow-md rounded-xl p-5 flex flex-col justify-between w-full"
+        >
+          <div>
+            <h3
+              className="text-xl font-semibold text-green-800 mb-2 truncate"
+              title={req.foodName}
             >
-              Cancel
-            </button>
+              {req.foodName || "Unnamed Food"}
+            </h3>
+            <p
+              className="text-base text-gray-700 mb-2 truncate"
+              title={req.donorName}
+            >
+              <FaUser className="inline mr-2 text-green-600" />
+              Donor: {req.donorName || "Unknown"}
+            </p>
+            <p
+              className="text-base text-gray-700 mb-2 truncate"
+              title={req.pickupLocation}
+            >
+              <FaMapMarkerAlt className="inline mr-2 text-green-600" />
+              Pickup: {req.pickupLocation || "N/A"}
+            </p>
+            <p className="text-sm text-gray-600 flex items-center space-x-2 mb-1">
+              <FaClock />
+              <span>Expires: {formatDate(req.expireDate)}</span>
+            </p>
+            <p className="text-sm text-gray-600 flex items-center space-x-2 mb-3">
+              <FaClock />
+              <span>Requested: {formatDate(req.requestDate)}</span>
+            </p>
+            {req.additionalNotes && (
+              <p
+                className="text-sm text-gray-800 italic truncate"
+                title={req.additionalNotes}
+              >
+                <FaInfoCircle className="inline mr-2 text-green-700" />
+                Notes: {truncateText(req.additionalNotes, 60)}
+              </p>
+            )}
           </div>
-        ))}
-      </div>
-
-      <style>{`
-        /* Hide scrollbar but allow scroll */
-        .hide-scrollbar::-webkit-scrollbar {
-          display: none;
-        }
-        .hide-scrollbar {
-          -ms-overflow-style: none;
-          scrollbar-width: none;
-        }
-      `}</style>
+          <button
+            onClick={() => handleCancel(req._id)}
+            className="mt-5 bg-red-700 hover:bg-red-800 text-white text-base font-semibold px-4 py-2 rounded-md shadow w-full transition"
+          >
+            Cancel
+          </button>
+        </div>
+      ))}
     </div>
   );
 };
 
-export default MyRequest;
+export default MyRequests;

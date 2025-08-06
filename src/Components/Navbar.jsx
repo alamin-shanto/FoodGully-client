@@ -1,10 +1,11 @@
 import React, { useContext, useState, useEffect } from "react";
 import AuthContext from "../Providers/AuthContext";
-import { Link } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom"; // <-- import useLocation
 
 const Navbar = () => {
   const { user, logOut } = useContext(AuthContext);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const location = useLocation(); // <-- get current path
 
   const handleLogout = () => {
     logOut().catch(console.error);
@@ -31,13 +32,23 @@ const Navbar = () => {
     return () => window.removeEventListener("keydown", handleEsc);
   }, []);
 
+  // Helper function to check if link is active
+  const isActive = (path) => {
+    return location.pathname === path;
+  };
+
+  // Active link styles
+  const activeLinkClass = "text-yellow-300 font-bold";
+
   return (
     <nav className="bg-gradient-to-r from-green-400 to-blue-500 shadow-lg sticky top-0 z-50">
       <div className="container mx-auto px-6 py-3 flex items-center justify-between relative">
         {/* Logo */}
         <Link
           to="/"
-          className="text-3xl font-extrabold text-white tracking-widest hover:text-yellow-300 transition-colors duration-300"
+          className={`text-3xl font-extrabold text-white tracking-widest hover:text-yellow-300 transition-colors duration-300 ${isActive(
+            "/"
+          )}`}
           onClick={handleLinkClick}
         >
           FoodGully
@@ -48,14 +59,18 @@ const Navbar = () => {
           <Link
             to="/"
             onClick={handleLinkClick}
-            className="hover:text-yellow-300 transition-colors duration-300"
+            className={`hover:text-yellow-300 transition-colors duration-300 ${
+              isActive("/") ? activeLinkClass : ""
+            }`}
           >
             Home
           </Link>
           <Link
             to="/foods"
             onClick={handleLinkClick}
-            className="hover:text-yellow-300 transition-colors duration-300"
+            className={`hover:text-yellow-300 transition-colors duration-300 ${
+              isActive("/foods") ? activeLinkClass : ""
+            }`}
           >
             Available Foods
           </Link>
@@ -64,21 +79,27 @@ const Navbar = () => {
               <Link
                 to="/add-food"
                 onClick={handleLinkClick}
-                className="hover:text-yellow-300 transition-colors duration-300"
+                className={`hover:text-yellow-300 transition-colors duration-300 ${
+                  isActive("/add-food") ? activeLinkClass : ""
+                }`}
               >
                 Add Food
               </Link>
               <Link
                 to="/manage-foods"
                 onClick={handleLinkClick}
-                className="hover:text-yellow-300 transition-colors duration-300"
+                className={`hover:text-yellow-300 transition-colors duration-300 ${
+                  isActive("/manage-foods") ? activeLinkClass : ""
+                }`}
               >
                 Manage My Foods
               </Link>
               <Link
                 to="/my-requests"
                 onClick={handleLinkClick}
-                className="hover:text-yellow-300 transition-colors duration-300"
+                className={`hover:text-yellow-300 transition-colors duration-300 ${
+                  isActive("/my-requests") ? activeLinkClass : ""
+                }`}
               >
                 My Food Requests
               </Link>
@@ -182,14 +203,18 @@ const Navbar = () => {
               <Link
                 to="/"
                 onClick={handleLinkClick}
-                className="hover:text-yellow-300"
+                className={`hover:text-yellow-300 ${
+                  isActive("/") ? activeLinkClass : ""
+                }`}
               >
                 Home
               </Link>
               <Link
                 to="/foods"
                 onClick={handleLinkClick}
-                className="hover:text-yellow-300"
+                className={`hover:text-yellow-300 ${
+                  isActive("/foods") ? activeLinkClass : ""
+                }`}
               >
                 Available Foods
               </Link>
@@ -198,21 +223,27 @@ const Navbar = () => {
                   <Link
                     to="/add-food"
                     onClick={handleLinkClick}
-                    className="hover:text-yellow-300"
+                    className={`hover:text-yellow-300 ${
+                      isActive("/add-food") ? activeLinkClass : ""
+                    }`}
                   >
                     Add Food
                   </Link>
                   <Link
                     to="/manage-foods"
                     onClick={handleLinkClick}
-                    className="hover:text-yellow-300"
+                    className={`hover:text-yellow-300 ${
+                      isActive("/manage-foods") ? activeLinkClass : ""
+                    }`}
                   >
                     Manage My Foods
                   </Link>
                   <Link
                     to="/my-requests"
                     onClick={handleLinkClick}
-                    className="hover:text-yellow-300"
+                    className={`hover:text-yellow-300 ${
+                      isActive("/my-requests") ? activeLinkClass : ""
+                    }`}
                   >
                     My Food Requests
                   </Link>

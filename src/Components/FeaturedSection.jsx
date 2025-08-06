@@ -21,50 +21,48 @@ const FeaturedSection = () => {
   }, [axiosSecure]);
 
   return (
-    <div className="max-w-7xl mx-auto px-4 py-12">
-      <h2 className="text-3xl font-bold text-center mb-10 text-gray-800">
+    <div className="max-w-7xl mx-auto px-4 py-16">
+      <h2 className="text-4xl md:text-5xl font-extrabold text-center mb-14 text-green-700 drop-shadow-lg">
         🍽️ Featured Foods
       </h2>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-8">
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-10">
         {featuredFoods.map((food) => (
           <div
             key={food._id}
-            className="bg-white rounded-2xl shadow-lg overflow-hidden hover:shadow-2xl transition-shadow duration-300"
+            className="rounded-3xl overflow-hidden bg-gradient-to-br from-white/80 via-white/60 to-green-100 border border-green-200 shadow-xl hover:shadow-2xl transition duration-300 backdrop-blur-md"
           >
-            <figure className="h-48 overflow-hidden">
+            <figure className="h-56 w-full overflow-hidden">
               <img
                 src={food.image}
                 alt={food.name}
-                className="w-full h-full object-cover transition-transform duration-300 hover:scale-105"
+                className="w-full h-full object-cover object-center transition-transform duration-300 hover:scale-110"
               />
             </figure>
-            <div className="p-5">
-              <h3 className="text-xl font-semibold mb-2 text-gray-900">
+            <div className="p-6 flex flex-col space-y-3">
+              <h3 className="text-2xl font-bold text-green-800 tracking-wide">
                 {food.name}
               </h3>
-              <p className="text-gray-600">
-                <strong>Quantity:</strong> {food.quantity}
+              <p className="text-gray-700 text-lg">
+                <span className="font-semibold">Quantity:</span> {food.quantity}
               </p>
-              <div className="mt-4">
-                <Link
-                  to={`/foods/${food._id}`}
-                  className="inline-block px-4 py-2 text-sm font-medium text-white bg-green-500 hover:bg-green-600 rounded-md transition"
-                >
-                  View Details
-                </Link>
-              </div>
+              <Link
+                to={`/foods/${food._id}`}
+                className="inline-block text-center mt-2 bg-gradient-to-r from-green-500 to-blue-500 hover:from-blue-500 hover:to-green-500 text-white text-sm font-bold py-2 px-4 rounded-full shadow-md transition-transform hover:scale-105"
+              >
+                View Details
+              </Link>
             </div>
           </div>
         ))}
       </div>
 
-      <div className="text-center mt-10">
+      <div className="text-center mt-14">
         <Link
           to="/foods"
-          className="inline-block px-6 py-3 text-lg font-semibold text-white bg-indigo-600 hover:bg-indigo-700 rounded-full transition"
+          className="inline-block bg-gradient-to-r from-indigo-500 to-blue-500 hover:from-blue-500 hover:to-indigo-500 text-white text-lg font-bold py-3 px-8 rounded-full shadow-lg transition-transform hover:scale-105"
         >
-          Show All Foods
+          🌟 Show All Foods
         </Link>
       </div>
     </div>
