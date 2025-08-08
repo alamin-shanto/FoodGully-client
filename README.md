@@ -6,7 +6,11 @@ A fully responsive MERN stack application that lets users donate and request foo
 
 ## 🚀 Live Site
 
-🔗 [Visit Live Website](https://your-live-site-url.com)
+🔗 [Visit Live Website]([https://.com](https://foodgully.netlify.app/)
+
+---
+
+![Food Gully](https://github.com/user-attachments/assets/2b629ef3-3d78-4e87-813c-cab2a11cd912)
 
 ---
 
