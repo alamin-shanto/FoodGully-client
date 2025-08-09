@@ -10,10 +10,6 @@ A fully responsive MERN stack application that lets users donate and request foo
 
 ---
 
-![Food Gully](https://github.com/user-attachments/assets/2b629ef3-3d78-4e87-813c-cab2a11cd912)
-
----
-
 ## 🎯 Purpose
 
 To build a real-world web application focused on social good while mastering full-stack development, including:
@@ -74,6 +70,7 @@ To build a real-world web application focused on social good while mastering ful
 - Tailwind CSS + DaisyUI
 - Framer Motion
 
+
 ### Server
 
 - Express.js
@@ -81,6 +78,23 @@ To build a real-world web application focused on social good while mastering ful
 - Firebase Admin SDK (verify token)
 - dotenv
 - CORS
+
+---
+
+## 📦 Dependencies
+
+**Frontend**
+```
+"react": "^19.1.0",
+"react-router-dom": "^7.7.0",
+"firebase": "^11.10.0",
+"@tanstack/react-query": "^5.83.0",
+"axios": "^1.10.0",
+"framer-motion": "^12.23.6",
+"react-icons": "^5.5.0",
+"sweetalert2": "^11.6.13",
+"tailwindcss": "^4.1.11"
+```
 
 ---
 
@@ -160,7 +174,7 @@ Example commit messages:
 
 ## 📸 Screenshots
 
-_Add screenshots of UI sections like Home, Available Foods, Login, Add Food, etc._
+![Food Gully](https://github.com/user-attachments/assets/2b629ef3-3d78-4e87-813c-cab2a11cd912)
 
 ---
 
@@ -175,9 +189,63 @@ _Add screenshots of UI sections like Home, Available Foods, Login, Add Food, etc
 
 ## 🤝 Contribution
 
-This project is for personal learning and portfolio showcase. If you'd like to collaborate, feel free to fork and submit pull requests!
+If you'd like to collaborate, feel free to fork and submit pull requests!
 
 ---
+
+## ⚙️ Local Setup
+
+### 1️⃣ Clone Repository
+```bash
+git clone https://github.com/<your-username>/food-gully.git
+cd food-gully
+```
+
+### 2️⃣ Client Setup
+```bash
+cd client
+npm install
+npm run dev    # Runs on http://localhost:5173
+```
+
+### 3️⃣ Server Setup
+```bash
+cd ../server
+npm install
+# Create a .env file (see below)
+npm run dev    # or node index.js (default port: 5000)
+```
+
+### 4️⃣ .env.example
+```env
+# MongoDB
+MONGO_URI=mongodb+srv://<user>:<pass>@cluster.mongodb.net/<dbname>?retryWrites=true&w=majority
+
+# JWT
+JWT_SECRET=your_jwt_secret
+
+# Firebase
+FIREBASE_PROJECT_ID=xxxx
+FIREBASE_CLIENT_EMAIL=xxxx@xxxx.iam.gserviceaccount.com
+FIREBASE_PRIVATE_KEY="-----BEGIN PRIVATE KEY-----\nXXXX\n-----END PRIVATE KEY-----\n"
+
+# Stripe (if using payments)
+STRIPE_SECRET_KEY=sk_test_xxx
+```
+
+### 5️⃣ Security Guidelines
+- Add `.env` and `admin-key.json` to `.gitignore`
+- **Never commit sensitive credentials**
+- Use environment variables in production
+
+### 🏁 Deployment
+- **Frontend:** Deploy to [Netlify](https://www.netlify.com/)  
+- **Backend:** Deploy to [Vercel](https://vercel.com/) → configure `.env` in the hosting dashboard  
+- **Firebase Auth:** Add your deployed domain(s) to the Firebase whitelist  
+
+---
+✅ **Pro Tip:** Keep your `.env` file local and secure. Use `.env.example` for collaborators so they know which keys are required.
+
 
 ## 🔒 License
 
