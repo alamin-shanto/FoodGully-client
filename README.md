@@ -88,18 +88,59 @@ To build a real-world web application focused on social good while mastering ful
 
 ```
 client/
-├── src/
-│   ├── pages/
-│   ├── components/
-│   ├── hooks/
-│   ├── providers/
-│   ├── App.jsx
-│   └── main.jsx
+┣ 📂assets
+┃ ┗ 📂Animations
+┣ 📂Components
+┃ ┣ 📜Banner.jsx
+┃ ┣ 📜BeginnerFriendlyPlants.jsx
+┃ ┣ 📜Footer.jsx
+┃ ┣ 📜Layout.jsx
+┃ ┣ 📜Navbar.jsx
+┃ ┣ 📜NewPlants.jsx
+┃ ┣ 📜Spinner.jsx
+┃ ┣ 📜SubSpinner.jsx
+┃ ┣ 📜ThemeToggle.jsx
+┃ ┣ 📜TopPlantCareMistakes.jsx
+┃ ┗ 📜WhyChooseLeafy.jsx
+┣ 📂Context
+┃ ┣ 📜AuthContext.jsx
+┃ ┗ 📜AuthProvider.jsx
+┣ 📂Firebase
+┃ ┗ 📜firebase.jsx
+┣ 📂Pages
+┃ ┣ 📜AddPlants.jsx
+┃ ┣ 📜AllPlants.jsx
+┃ ┣ 📜Home.jsx
+┃ ┣ 📜LogIn.jsx
+┃ ┣ 📜MyPlants.jsx
+┃ ┣ 📜NotFound.jsx
+┃ ┣ 📜PlantDetails.jsx
+┃ ┣ 📜PlantNotFound.jsx
+┃ ┣ 📜Register.jsx
+┃ ┗ 📜UpdatePlant.jsx
+┣ 📂Routes
+┃ ┣ 📜PrivateRoutes.jsx
+┃ ┗ 📜Router.jsx
+┣ 📜App.css
+┣ 📜App.jsx
+┣ 📜index.css
+┗ 📜main.jsx
 
 server/
-├── server.js
-├── .env
-└── admin-key.json (secured)
+┣ 📂middleware
+┃ ┗ 📜verifyToken.js
+┣ 📂public
+┃ ┗ 📜index.html
+┣ 📜.env
+┣ 📜.firebaserc
+┣ 📜.gitignore
+┣ 📜admin-key.json
+┣ 📜firebase.json
+┣ 📜index.js
+┣ 📜keyConvert.js
+┣ 📜package.json
+┗ 📜vercel.json
+
 ```
 
 ---
