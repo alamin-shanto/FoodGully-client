@@ -103,53 +103,46 @@ To build a real-world web application focused on social good while mastering ful
 ```
 client/
 ┣ 📂assets
-┃ ┗ 📂Animations
+┃ ┗ 📜Loading.json
 ┣ 📂Components
 ┃ ┣ 📜Banner.jsx
-┃ ┣ 📜BeginnerFriendlyPlants.jsx
-┃ ┣ 📜Footer.jsx
-┃ ┣ 📜Layout.jsx
+┃ ┣ 📜CountUpCard.jsx
+┃ ┣ 📜FeaturedSection.jsx
+┃ ┣ 📜FoodDetails.jsx
 ┃ ┣ 📜Navbar.jsx
-┃ ┣ 📜NewPlants.jsx
-┃ ┣ 📜Spinner.jsx
-┃ ┣ 📜SubSpinner.jsx
-┃ ┣ 📜ThemeToggle.jsx
-┃ ┣ 📜TopPlantCareMistakes.jsx
-┃ ┗ 📜WhyChooseLeafy.jsx
-┣ 📂Context
+┃ ┗ 📜ShortQuotes.jsx
+┣ 📂Firebase
+┃ ┗ 📜Firebase.config.js
+┣ 📂Hooks
+┃ ┗ 📜AxiosSecure.jsx
+┣ 📂Pages
+┃ ┣ 📜AddFood.jsx
+┃ ┣ 📜AvailableFoods.jsx
+┃ ┣ 📜FoodDetails.jsx
+┃ ┣ 📜FoodRequestModal.jsx
+┃ ┣ 📜Home.jsx
+┃ ┣ 📜Loading.jsx
+┃ ┣ 📜Login.jsx
+┃ ┣ 📜ManageFoods.jsx
+┃ ┣ 📜MyRequest.jsx
+┃ ┣ 📜NotFound.jsx
+┃ ┣ 📜Register.jsx
+┃ ┗ 📜UpdateFoodModal.jsx
+┣ 📂Providers
 ┃ ┣ 📜AuthContext.jsx
 ┃ ┗ 📜AuthProvider.jsx
-┣ 📂Firebase
-┃ ┗ 📜firebase.jsx
-┣ 📂Pages
-┃ ┣ 📜AddPlants.jsx
-┃ ┣ 📜AllPlants.jsx
-┃ ┣ 📜Home.jsx
-┃ ┣ 📜LogIn.jsx
-┃ ┣ 📜MyPlants.jsx
-┃ ┣ 📜NotFound.jsx
-┃ ┣ 📜PlantDetails.jsx
-┃ ┣ 📜PlantNotFound.jsx
-┃ ┣ 📜Register.jsx
-┃ ┗ 📜UpdatePlant.jsx
 ┣ 📂Routes
-┃ ┣ 📜PrivateRoutes.jsx
-┃ ┗ 📜Router.jsx
+┃ ┣ 📜MainRoutes.jsx
+┃ ┗ 📜PrivateRoutes.jsx
 ┣ 📜App.css
 ┣ 📜App.jsx
 ┣ 📜index.css
 ┗ 📜main.jsx
 
 server/
-┣ 📂middleware
-┃ ┗ 📜verifyToken.js
-┣ 📂public
-┃ ┗ 📜index.html
 ┣ 📜.env
-┣ 📜.firebaserc
 ┣ 📜.gitignore
 ┣ 📜admin-key.json
-┣ 📜firebase.json
 ┣ 📜index.js
 ┣ 📜keyConvert.js
 ┣ 📜package.json
